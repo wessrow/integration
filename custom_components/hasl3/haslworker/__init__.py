@@ -171,8 +171,10 @@ class HaslWorker(object):
         return
 
     def parseDepartureTime(self, t):
-        """weird time formats from the API,
-        do some quick and dirty conversions."""
+        """
+        weird time formats from the API,
+        do some quick and dirty conversions.
+        """
 
         try:
             if t == "Nu":
@@ -201,7 +203,7 @@ class HaslWorker(object):
         for rp3key in list(self.data.rp3keys):
             logger.debug(f"[process_rp3] Processing key {rp3key}")
             rp3data = self.data.rp3keys[rp3key]
-            api = slapi_rp3(rp3key)
+            api = slapi_rp3(hass=self.hass, api_token=rp3key)
             for tripname in "|".join(set(rp3data["trips"].split("|"))).split("|"):
                 logger.debug(f"[process_rp3] Processing trip {tripname}")
                 newdata = self.data.rp3[tripname]
@@ -381,7 +383,7 @@ class HaslWorker(object):
     async def process_fp(self, notarealarg=None):
         logger.debug("[process_rp3] Entered")
 
-        api = slapi_fp()
+        api = slapi_fp(hass=self.hass)
         for traintype in list(self.data.fp):
             logger.debug(f"[process_rp3] Processing {traintype}")
 
@@ -442,7 +444,7 @@ class HaslWorker(object):
         for si2key in list(self.data.si2keys):
             logger.debug(f"[process_si2] Processing key {si2key}")
             si2data = self.data.si2keys[si2key]
-            api = slapi_si2(si2key, 60)
+            api = slapi_si2(hass=self.hass, api_token=si2key, timeout=60)
             for stop in ",".join(set(si2data["stops"].split(","))).split(","):
                 logger.debug(f"[process_si2] Processing stop {stop}")
                 newdata = self.data.si2[f"stop_{stop}"]
@@ -632,7 +634,7 @@ class HaslWorker(object):
         logger.debug("[assert_rp3] Completed")
         return
 
-    async def process_rrd(self, hass: HomeAssistant, notarealarg=None):
+    async def process_rrd(self, notarealarg=None):
         logger.debug("[process_rrd] Entered")
 
         iconswitcher = {
@@ -653,7 +655,7 @@ class HaslWorker(object):
         for rrkey in list(self.data.rrkeys):
             logger.debug(f"[process_rrd] Processing key {rrkey}")
             rrdata = self.data.rrkeys[rrkey]
-            api = rrapi_rrd(hass, rrkey, 60)
+            api = rrapi_rrd(hass=self.hass, api_token=rrkey, timeout=60)
             for stop in ",".join(set(rrdata["deps"].split(","))).split(","):
                 logger.debug(f"[process_rrd] Processing stop {stop}")
                 newdata = self.data.rrd[stop]
@@ -733,7 +735,7 @@ class HaslWorker(object):
         logger.debug("[process_rrd] Completed")
         return
 
-    async def process_rra(self, hass: HomeAssistant, notarealarg=None):
+    async def process_rra(self, notarealarg=None):
         logger.debug("[process_rra] Entered")
 
         iconswitcher = {
@@ -754,7 +756,7 @@ class HaslWorker(object):
         for rrkey in list(self.data.rrkeys):
             logger.debug(f"[process_rra] Processing key {rrkey}")
             rrdata = self.data.rrkeys[rrkey]
-            api = rrapi_rra(hass, rrkey, 60)
+            api = rrapi_rra(hass=self.hass, api_token=rrkey, timeout=60)
             for stop in ",".join(set(rrdata["arrs"].split(","))).split(","):
                 logger.debug(f"[process_rra] Processing stop {stop}")
                 newdata = self.data.rra[stop]
@@ -835,13 +837,13 @@ class HaslWorker(object):
         logger.debug("[process_rra] Completed")
         return
 
-    async def process_rrr(self, hass: HomeAssistant):
+    async def process_rrr(self):
         logger.debug("[process_rrr] Entered")
 
         for rrkey in list(self.data.rrkeys):
             logger.debug(f"[process_rrr] Processing key {rrkey}")
             rrdata = self.data.rrkeys[rrkey]
-            api = rrapi_rrr(hass, rrkey)
+            api = rrapi_rrr(hass=self.hass, api_token=rrkey)
             for tripname in "|".join(set(rrdata["trips"].split("|"))).split("|"):
                 logger.debug(f"[process_rrr] Processing trip {tripname}")
                 newdata = self.data.rrr[tripname]
@@ -987,7 +989,7 @@ class HaslWorker(object):
         for ri4key in list(self.data.ri4keys):
             logger.debug(f"[process_ri4] Processing key {ri4key}")
             ri4data = self.data.ri4keys[ri4key]
-            api = slapi_ri4(ri4key, 60)
+            api = slapi_ri4(hass=self.hass, api_token=ri4key, timeout=60)
             for stop in ",".join(set(ri4data["stops"].split(","))).split(","):
                 logger.debug(f"[process_ri4] Processing stop {stop}")
                 newdata = self.data.ri4[stop]
@@ -1085,7 +1087,7 @@ class HaslWorker(object):
             }
 
             try:
-                api = slapi_tl2(tl2key)
+                api = slapi_tl2(hass=self.hass, api_token=tl2key)
                 apidata = await api.request()
                 apidata = apidata["ResponseData"]["TrafficTypes"]
 

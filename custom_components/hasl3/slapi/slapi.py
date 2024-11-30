@@ -3,6 +3,9 @@ import httpx
 import time
 import logging
 
+from homeassistant.helpers.httpx_client import get_async_client
+
+from homeassistant.core import HomeAssistant
 from .exceptions import SLAPI_Error, SLAPI_HTTP_Error, SLAPI_API_Error
 from .const import (
     __version__,
@@ -19,8 +22,9 @@ logger = logging.getLogger("custom_components.hasl3.slapi")
 
 
 class slapi_fp(object):
-    def __init__(self, timeout=None):
+    def __init__(self, hass: HomeAssistant, timeout=None):
         self._timeout = timeout
+        self.hass = hass
 
     def version(self):
         return __version__
@@ -45,13 +49,14 @@ class slapi_fp(object):
             )
 
         try:
-            async with httpx.AsyncClient() as client:
-                request = await client.get(
-                    FORDONSPOSITION_URL.format(vehicletype, time.time()),
-                    headers={"User-agent": USER_AGENT},
-                    follow_redirects=True,
-                    timeout=self._timeout,
-                )
+            client = get_async_client(self.hass)
+            request = await client.get(
+                FORDONSPOSITION_URL.format(vehicletype, time.time()),
+                headers={"User-agent": USER_AGENT},
+                follow_redirects=True,
+                timeout=self._timeout,
+            )
+
         except Exception as e:
             error = SLAPI_HTTP_Error(
                 997, "An HTTP error occurred (Vehicle Locations)", str(e)
@@ -72,8 +77,9 @@ class slapi_fp(object):
 
 
 class slapi(object):
-    def __init__(self, timeout=None):
+    def __init__(self, hass: HomeAssistant, timeout=None):
         self._timeout = timeout
+        self.hass = hass
 
     def version(self):
         return __version__
@@ -92,13 +98,14 @@ class slapi(object):
         }
 
         try:
-            async with httpx.AsyncClient() as client:
-                resp = await client.get(
-                    url,
-                    headers={"User-agent": USER_AGENT},
-                    follow_redirects=True,
-                    timeout=self._timeout,
-                )
+            client = get_async_client(self.hass)
+
+            resp = await client.get(
+                url,
+                headers={"User-agent": USER_AGENT},
+                follow_redirects=True,
+                timeout=self._timeout,
+            )
         except Exception as e:
             error = SLAPI_HTTP_Error(997, f"An HTTP error occurred ({api})", str(e))
             logger.debug(e)
@@ -154,8 +161,8 @@ class slapi(object):
 
 
 class slapi_pu1(slapi):
-    def __init__(self, api_token, timeout=None):
-        super().__init__(timeout)
+    def __init__(self, hass: HomeAssistant, api_token, timeout=None):
+        super().__init__(hass, timeout)
         self._api_token = api_token
 
     async def request(self, searchstring):
@@ -166,8 +173,8 @@ class slapi_pu1(slapi):
 
 
 class slapi_rp3(slapi):
-    def __init__(self, api_token, timeout=None):
-        super().__init__(timeout)
+    def __init__(self, hass: HomeAssistant, api_token, timeout=None):
+        super().__init__(hass, timeout)
         self._api_token = api_token
 
     async def request(self, origin, destination, orgLat, orgLong, destLat, destLong):
@@ -181,8 +188,8 @@ class slapi_rp3(slapi):
 
 
 class slapi_ri4(slapi):
-    def __init__(self, api_token, window, timeout=None):
-        super().__init__(timeout)
+    def __init__(self, hass: HomeAssistant, api_token, window, timeout=None):
+        super().__init__(hass, timeout)
         self._api_token = api_token
         self._window = window
 
@@ -194,8 +201,8 @@ class slapi_ri4(slapi):
 
 
 class slapi_si2(slapi):
-    def __init__(self, api_token, siteid, timeout=None):
-        super().__init__(timeout)
+    def __init__(self, hass: HomeAssistant, api_token, timeout=None):
+        super().__init__(hass, timeout)
         self._api_token = api_token
 
     async def request(self, siteid, lines):
@@ -206,8 +213,8 @@ class slapi_si2(slapi):
 
 
 class slapi_tl2(slapi):
-    def __init__(self, api_token, timeout=None):
-        super().__init__(timeout)
+    def __init__(self, hass: HomeAssistant, api_token, timeout=None):
+        super().__init__(hass, timeout)
         self._api_token = api_token
 
     async def request(self):
