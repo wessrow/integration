@@ -36,7 +36,7 @@ logger = logging.getLogger(f"custom_components.{DOMAIN}.core")
 serviceLogger = logging.getLogger(f"custom_components.{DOMAIN}.services")
 
 
-async def async_setup(hass, config):
+async def async_setup(hass: HomeAssistant, config):
     """Set up HASL integration"""
     logger.debug("[setup] Entering")
 
@@ -130,7 +130,8 @@ async def async_setup(hass, config):
             return True
 
     @callback
-    async def rr_find_location(service):
+    async def rr_find_location(hass: HomeAssistant, service):
+        logger.debug(type(hass))
         serviceLogger.debug("[rr_find_location] Entered")
         search_string = service.data.get("search_string")
         api_key = service.data.get("api_key")
@@ -140,7 +141,7 @@ async def async_setup(hass, config):
         )
 
         try:
-            rrapi = rrapi_sl(api_key)
+            rrapi = rrapi_sl(hass, api_key)
             requestResult = await rrapi.request(search_string)
             serviceLogger.debug("[rr_find_location] Completed")
             hass.bus.fire(
@@ -362,7 +363,7 @@ async def async_migrate_entry(hass, config_entry: ConfigEntry):
     return True
 
 
-async def reload_entry(hass, entry):
+async def reload_entry(hass: HomeAssistant, entry):
     """Reload HASL."""
     logger.debug(f"[reload_entry] Entering for {entry.entry_id}")
 
@@ -433,7 +434,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     return True
 
 
-async def async_unload_entry(hass, entry):
+async def async_unload_entry(hass: HomeAssistant, entry):
     """Unload entry."""
     logger.debug("[unload_entry] Entered")
 

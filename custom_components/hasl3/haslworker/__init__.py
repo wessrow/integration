@@ -5,6 +5,7 @@ import time
 
 from datetime import datetime
 from homeassistant.util.dt import now
+from homeassistant.core import HomeAssistant
 
 from custom_components.hasl3.slapi import (
     slapi_fp,
@@ -88,8 +89,9 @@ class HaslWorker(object):
     instances = HASLInstances()
 
     @staticmethod
-    def init(hass, configuration):
+    def init(self, hass: HomeAssistant, configuration):
         """Return a initialized HaslWorker object."""
+        self.hass = hass
         return HaslWorker()
 
     def debugdump(self, data):
@@ -630,7 +632,7 @@ class HaslWorker(object):
         logger.debug("[assert_rp3] Completed")
         return
 
-    async def process_rrd(self, notarealarg=None):
+    async def process_rrd(self, hass: HomeAssistant, notarealarg=None):
         logger.debug("[process_rrd] Entered")
 
         iconswitcher = {
@@ -651,7 +653,7 @@ class HaslWorker(object):
         for rrkey in list(self.data.rrkeys):
             logger.debug(f"[process_rrd] Processing key {rrkey}")
             rrdata = self.data.rrkeys[rrkey]
-            api = rrapi_rrd(rrkey, 60)
+            api = rrapi_rrd(hass, rrkey, 60)
             for stop in ",".join(set(rrdata["deps"].split(","))).split(","):
                 logger.debug(f"[process_rrd] Processing stop {stop}")
                 newdata = self.data.rrd[stop]
@@ -731,7 +733,7 @@ class HaslWorker(object):
         logger.debug("[process_rrd] Completed")
         return
 
-    async def process_rra(self, notarealarg=None):
+    async def process_rra(self, hass: HomeAssistant, notarealarg=None):
         logger.debug("[process_rra] Entered")
 
         iconswitcher = {
@@ -752,7 +754,7 @@ class HaslWorker(object):
         for rrkey in list(self.data.rrkeys):
             logger.debug(f"[process_rra] Processing key {rrkey}")
             rrdata = self.data.rrkeys[rrkey]
-            api = rrapi_rra(rrkey, 60)
+            api = rrapi_rra(hass, rrkey, 60)
             for stop in ",".join(set(rrdata["arrs"].split(","))).split(","):
                 logger.debug(f"[process_rra] Processing stop {stop}")
                 newdata = self.data.rra[stop]
@@ -833,13 +835,13 @@ class HaslWorker(object):
         logger.debug("[process_rra] Completed")
         return
 
-    async def process_rrr(self):
+    async def process_rrr(self, hass: HomeAssistant):
         logger.debug("[process_rrr] Entered")
 
         for rrkey in list(self.data.rrkeys):
             logger.debug(f"[process_rrr] Processing key {rrkey}")
             rrdata = self.data.rrkeys[rrkey]
-            api = rrapi_rrr(rrkey)
+            api = rrapi_rrr(hass, rrkey)
             for tripname in "|".join(set(rrdata["trips"].split("|"))).split("|"):
                 logger.debug(f"[process_rrr] Processing trip {tripname}")
                 newdata = self.data.rrr[tripname]
