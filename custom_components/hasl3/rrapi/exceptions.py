@@ -7,7 +7,7 @@ class RRAPI_Error(Exception):
         self._details = details
 
     def __str__(self):
-        return "RRAPI_Error {self._code}: {self._message}"
+        return f"RRAPI_Error {self._code}: {self._message}"
 
     @property
     def details(self):
@@ -26,7 +26,7 @@ class RRAPI_API_Error(RRAPI_Error):
     """An API-level exception occurred."""
 
     def __str__(self):
-        return "RRAPI_API_Error {self._code}: {self._message}"
+        return f"RRAPI_API_Error {self._code}: {self._message}"
 
 
 class RRAPI_HTTP_Error(RRAPI_Error):
