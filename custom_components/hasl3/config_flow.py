@@ -1,4 +1,5 @@
 """Config flow for the HASL component."""
+
 import voluptuous
 import logging
 import uuid
@@ -6,6 +7,7 @@ import uuid
 from homeassistant import config_entries
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.core import callback
+from homeassistant.config_entries import ConfigEntry
 
 from .const import (
     DOMAIN,
@@ -33,7 +35,7 @@ from .config_schema import (
     route_config_option_schema,
     rrdep_config_option_schema,
     rrarr_config_option_schema,
-    rrroute_config_option_schema
+    rrroute_config_option_schema,
 )
 
 logger = logging.getLogger(f"custom_components.{DOMAIN}.config")
@@ -66,22 +68,45 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is None:
             logger.debug("[async_step_user] No user input so showing creation form")
-            return self.async_show_form(step_id="user", data_schema=voluptuous.Schema(hasl_base_config_schema(user_input, True)))
+            return self.async_show_form(
+                step_id="user",
+                data_schema=voluptuous.Schema(
+                    hasl_base_config_schema(user_input, True)
+                ),
+            )
 
         try:
             user_input = await self.validate_input(user_input)
         except InvalidIntegrationType:
             errors["base"] = "invalid_integration_type"
             logger.debug("[setup_integration(validate)] Invalid integration type")
-            return self.async_show_form(step_id="user", data_schema=voluptuous.Schema(hasl_base_config_schema(user_input, True)), errors=errors)
+            return self.async_show_form(
+                step_id="user",
+                data_schema=voluptuous.Schema(
+                    hasl_base_config_schema(user_input, True)
+                ),
+                errors=errors,
+            )
         except InvalidIntegrationName:
             errors["base"] = "invalid_integration_name"
             logger.debug("[setup_integration(validate)] Invalid integration type")
-            return self.async_show_form(step_id="user", data_schema=voluptuous.Schema(hasl_base_config_schema(user_input, True)), errors=errors)
+            return self.async_show_form(
+                step_id="user",
+                data_schema=voluptuous.Schema(
+                    hasl_base_config_schema(user_input, True)
+                ),
+                errors=errors,
+            )
         except Exception:  # pylint: disable=broad-except
             errors["base"] = "unknown_exception"
             logger.debug("[setup_integration(validate)] Unknown exception occurred")
-            return self.async_show_form(step_id="user", data_schema=voluptuous.Schema(hasl_base_config_schema(user_input, True)), errors=errors)
+            return self.async_show_form(
+                step_id="user",
+                data_schema=voluptuous.Schema(
+                    hasl_base_config_schema(user_input, True)
+                ),
+                errors=errors,
+            )
 
         id = str(uuid.uuid4())
         await self.async_set_unique_id(id)
@@ -99,13 +124,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input[CONF_INTEGRATION_TYPE] == SENSOR_ROUTE:
             schema = route_config_option_schema()
         if user_input[CONF_INTEGRATION_TYPE] == SENSOR_RRDEP:
-            schema = rrdep_config_option_schema()         
+            schema = rrdep_config_option_schema()
         if user_input[CONF_INTEGRATION_TYPE] == SENSOR_RRARR:
-            schema = rrarr_config_option_schema()         
+            schema = rrarr_config_option_schema()
         if user_input[CONF_INTEGRATION_TYPE] == SENSOR_RRROUTE:
-            schema = rrroute_config_option_schema()         
+            schema = rrroute_config_option_schema()
 
-        return self.async_show_form(step_id="config", data_schema=voluptuous.Schema(schema), errors=errors)
+        return self.async_show_form(
+            step_id="config", data_schema=voluptuous.Schema(schema), errors=errors
+        )
 
     async def async_step_config(self, user_input):
         """Handle a flow initialized by the user."""
@@ -123,13 +150,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if self._userdata[CONF_INTEGRATION_TYPE] == SENSOR_ROUTE:
             schema = route_config_option_schema(user_input)
         if self._userdata[CONF_INTEGRATION_TYPE] == SENSOR_RRDEP:
-            schema = rrdep_config_option_schema(user_input)         
+            schema = rrdep_config_option_schema(user_input)
         if self._userdata[CONF_INTEGRATION_TYPE] == SENSOR_RRARR:
-            schema = rrarr_config_option_schema(user_input)         
+            schema = rrarr_config_option_schema(user_input)
         if self._userdata[CONF_INTEGRATION_TYPE] == SENSOR_RRROUTE:
-            schema = rrroute_config_option_schema(user_input)         
+            schema = rrroute_config_option_schema(user_input)
 
-        logger.debug(f"[setup_integration_config] Schema is {self._userdata[CONF_INTEGRATION_TYPE]}")
+        logger.debug(
+            f"[setup_integration_config] Schema is {self._userdata[CONF_INTEGRATION_TYPE]}"
+        )
 
         # FIXME: DOES NOT ACTUALLY VALIDATE ANYTHING! WE NEED THIS! =)
         if user_input is not None:
@@ -137,40 +166,50 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 user_input = await self.validate_config(user_input)
             except Exception:  # pylint: disable=broad-except
                 errors["base"] = "unknown_exception"
-                logger.debug("[setup_integration_config(validate)] Unknown exception occurred")
+                logger.debug(
+                    "[setup_integration_config(validate)] Unknown exception occurred"
+                )
             else:
                 try:
                     name = self._userdata[CONF_NAME]
                     del self._userdata[CONF_NAME]
-                    logger.debug(f"[setup_integration_config] Creating entry '{name}' with id {self._userdata[CONF_INTEGRATION_ID]}")
+                    logger.debug(
+                        f"[setup_integration_config] Creating entry '{name}' with id {self._userdata[CONF_INTEGRATION_ID]}"
+                    )
 
                     self._userdata.update(user_input)
 
-                    tempresult = self.async_create_entry(title=name, data=self._userdata)
+                    tempresult = self.async_create_entry(
+                        title=name, data=self._userdata
+                    )
                     logger.debug("[setup_integration_config] Entry creating succeeded")
                     return tempresult
                 except:
-                    logger.error(f"[setup_integration] Entry creation failed for '{name}' with id {self._userdata[CONF_INTEGRATION_ID]}")
+                    logger.error(
+                        f"[setup_integration] Entry creation failed for '{name}' with id {self._userdata[CONF_INTEGRATION_ID]}"
+                    )
                     return self.async_abort(reason="not_supported")
 
-            logger.debug("[setup_integration_config] Validation errors encountered so showing options form again")
-            return self.async_show_form(step_id="config", data_schema=voluptuous.Schema(schema), errors=errors)
+            logger.debug(
+                "[setup_integration_config] Validation errors encountered so showing options form again"
+            )
+            return self.async_show_form(
+                step_id="config", data_schema=voluptuous.Schema(schema), errors=errors
+            )
 
         logger.debug("[setup_integration_config] No user input so showing options form")
-        return self.async_show_form(step_id="config", data_schema=voluptuous.Schema(schema))
+        return self.async_show_form(
+            step_id="config", data_schema=voluptuous.Schema(schema)
+        )
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry):
-        return OptionsFlow(config_entry)
+    def async_get_options_flow(config_entry: ConfigEntry):
+        return OptionsFlowHandler()
 
 
-class OptionsFlow(config_entries.OptionsFlow):
+class OptionsFlowHandler(config_entries.OptionsFlow):
     """HASL config flow options handler."""
-
-    def __init__(self, config_entry):
-        """Initialize HASL options flow."""
-        self.config_entry = config_entry
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
@@ -181,6 +220,11 @@ class OptionsFlow(config_entries.OptionsFlow):
         # FIXME: DOES NOT ACTUALLY VALIDATE ANYTHING! WE NEED THIS! =)
 
         return data
+
+    @staticmethod
+    def _merge_config(config):
+        """Merge config.data and config.options, with options taking precedence."""
+        return {**config.data, **config.options}
 
     async def async_step_user(self, user_input):
         """Handle a flow initialized by the user."""
@@ -198,13 +242,15 @@ class OptionsFlow(config_entries.OptionsFlow):
         if self.config_entry.data[CONF_INTEGRATION_TYPE] == SENSOR_ROUTE:
             schema = route_config_option_schema(self.config_entry.data)
         if self.config_entry.data[CONF_INTEGRATION_TYPE] == SENSOR_RRDEP:
-            schema = rrdep_config_option_schema(self.config_entry.data)         
+            schema = rrdep_config_option_schema(self.config_entry.data)
         if self.config_entry.data[CONF_INTEGRATION_TYPE] == SENSOR_RRARR:
-            schema = rrarr_config_option_schema(self.config_entry.data)         
+            schema = rrarr_config_option_schema(self.config_entry.data)
         if self.config_entry.data[CONF_INTEGRATION_TYPE] == SENSOR_RRROUTE:
-            schema = rrroute_config_option_schema(self.config_entry.data)         
+            schema = rrroute_config_option_schema(self.config_entry.data)
 
-        logger.debug(f"[integration_options] Schema is {self.config_entry.data[CONF_INTEGRATION_TYPE]}")
+        logger.debug(
+            f"[integration_options] Schema is {self.config_entry.data[CONF_INTEGRATION_TYPE]}"
+        )
 
         # FIXME: DOES NOT ACTUALLY VALIDATE ANYTHING! WE NEED THIS! =)
         if user_input is not None:
@@ -212,20 +258,33 @@ class OptionsFlow(config_entries.OptionsFlow):
                 user_input = await self.validate_input(user_input)
             except Exception:  # pylint: disable=broad-except
                 errors["base"] = "unknown_exception"
-                logger.debug("[integration_options(validate)] Unknown exception occurred")
+                logger.debug(
+                    "[integration_options(validate)] Unknown exception occurred"
+                )
             else:
                 try:
-                    tempresult = self.async_create_entry(title=self.config_entry.title, data=user_input)
+                    self.hass.config_entries.async_update_entry(
+                        self.config_entry,
+                        data={**self.config_entry.data, **user_input},
+                        options=user_input,
+                    )
+                    logger.debug(f"Updated options: {self.config_entry.options}")
                     logger.debug("[integration_options] Entry update succeeded")
-                    return tempresult
+                    return self.async_create_entry(title="", data={})
                 except:
                     logger.error("[integration_options] Unknown exception occurred")
 
-            logger.debug("[integration_options] Validation errors encountered so showing options form again")
-            return self.async_show_form(step_id="user", data_schema=voluptuous.Schema(schema), errors=errors)
+                logger.debug(
+                    "[integration_options] Validation errors encountered so showing options form again"
+                )
+                return self.async_show_form(
+                    step_id="user", data_schema=voluptuous.Schema(schema), errors=errors
+                )
 
         logger.debug("[integration_options] No user input so showing options form")
-        return self.async_show_form(step_id="user", data_schema=voluptuous.Schema(schema))
+        return self.async_show_form(
+            step_id="user", data_schema=voluptuous.Schema(schema)
+        )
 
 
 class InvalidIntegrationType(HomeAssistantError):

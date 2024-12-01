@@ -73,6 +73,9 @@ async def setup_hasl_sensor(hass, config):
     """Setup sensor platform."""
     logger.debug("[setup_hasl_sensor] Entered")
 
+    logger.debug(f"[setup_hasl_sensor] Config data: {config.data}")
+    logger.debug(f"[setup_hasl_sensor] Config options: {config.options}")
+
     sensors = []
     worker = hass.data[DOMAIN]["worker"]
 
@@ -1044,7 +1047,6 @@ class HASLRRArrivalSensor(HASLDevice):
                         self._worker.data.rra[self._siteid]["api_lastrun"],
                     )
                     > self._config.data[CONF_SCAN_INTERVAL]
-                    
                 ):
                     try:
                         await self._worker.process_rra(self.hass)

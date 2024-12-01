@@ -24,7 +24,7 @@ from .const import (
     CONF_SENSOR,
     CONF_SENSOR_PROPERTY,
     CONF_LINES,
-    CONF_DIRECTION, 
+    CONF_DIRECTION,
     CONF_INTEGRATION_TYPE,
     CONF_INTEGRATION_LIST,
     CONF_SENSOR_PROPERTY_LIST,
@@ -177,7 +177,7 @@ def rrarr_config_option_schema(options: dict = {}) -> dict:
         vol.Required(CONF_TIMEWINDOW, default=options.get(CONF_TIMEWINDOW)): int,
         vol.Optional(CONF_LINES, default=options.get(CONF_LINES)): str,
         vol.Optional(CONF_SENSOR, default=options.get(CONF_SENSOR)): str
-    }    
+    }
 
 def rrroute_config_option_schema(options: dict = {}) -> dict:
     """Deviation sensor options."""
@@ -189,4 +189,4 @@ def rrroute_config_option_schema(options: dict = {}) -> dict:
         vol.Required(CONF_DESTINATION_ID, default=options.get(CONF_DESTINATION)): str,
         vol.Required(CONF_SCAN_INTERVAL, default=options.get(CONF_SCAN_INTERVAL)): int,
         vol.Optional(CONF_SENSOR, default=options.get(CONF_SENSOR)): str
-    }    
+    }
